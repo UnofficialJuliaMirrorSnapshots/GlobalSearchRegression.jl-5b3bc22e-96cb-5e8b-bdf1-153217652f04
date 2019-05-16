@@ -8,11 +8,13 @@ include("utils.jl")
 #include("strings.jl")
 #include("interface.jl")
 #include("core.jl")
+include("Preprocessing/Preprocessing.jl")
 include("FeatureExtraction/FeatureExtraction.jl")
-include("Regression/Regression.jl")
+include("AllSubsetRegression/AllSubsetRegression.jl")
 
+using ..Preprocessing
 using ..FeatureExtraction
-using ..Regression
+using ..AllSubsetRegression
 
 export gsreg, export_csv, to_dict, to_string, GSRegData, GSRegResult, featureextration, ols
 
