@@ -1,11 +1,14 @@
 function input(
     equation::String;
     data::Union{Array{Float64}, Array{Float32}, Array{Union{Float32, Missing}}, Array{Union{Float64, Missing}}, Tuple, DataFrame, Nothing} = nothing,
-    datanames::Union{Array, Nothing}=nothing,
+    datanames::Union{Array, Array{Symbol, 1}, Nothing}=nothing,
     method::Union{Symbol, String}=METHOD_DEFAULT,
     intercept::Bool=INTERCEPT_DEFAULT,
     time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
-    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT
+    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT,
+    removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
+    seasonaladjustment::Union{Dict, Nothing}=SEASONALADJUSTMENT_DEFAULT,
+    removemissings::Bool=REMOVEMISSINGS_DEFAULT
     )
 
     return input(
@@ -15,18 +18,24 @@ function input(
         method=method,
         intercept=intercept,
         time=time,
-        panel=panel
+        panel=panel,
+        removeoutliers=removeoutliers,
+        seasonaladjustment=seasonaladjustment,
+        removemissings=removemissings
     )
 end
 
 function input(
     equation::Array{String};
     data::Union{Array{Float64}, Array{Float32}, Array{Union{Float32, Missing}}, Array{Union{Float64, Missing}}, Tuple, DataFrame, Nothing} = nothing,
-    datanames::Union{Array, Nothing}=nothing,
+    datanames::Union{Array, Array{Symbol, 1}, Nothing}=nothing,
     method::Union{Symbol, String}=METHOD_DEFAULT,
     intercept::Bool=INTERCEPT_DEFAULT,
     time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
-    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT
+    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT,
+    removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
+    seasonaladjustment::Union{Dict, Nothing}=SEASONALADJUSTMENT_DEFAULT,
+    removemissings::Bool=REMOVEMISSINGS_DEFAULT
     )
 
     return input(
@@ -36,18 +45,24 @@ function input(
         method=method,
         intercept=intercept,
         time=time,
-        panel=panel
+        panel=panel,
+        removeoutliers=removeoutliers,
+        seasonaladjustment=seasonaladjustment,
+        removemissings=removemissings
     )
 end
 
 function input(
     equation::Array{Symbol};
     data::Union{Array{Float64}, Array{Float32}, Array{Union{Float32, Missing}}, Array{Union{Float64, Missing}}, Tuple, DataFrame, Nothing} = nothing,
-    datanames::Union{Array, Nothing}=nothing,
+    datanames::Union{Array, Array{Symbol, 1}, Nothing}=nothing,
     method::Union{Symbol, String}=METHOD_DEFAULT,
     intercept::Bool=INTERCEPT_DEFAULT,
     time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
-    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT
+    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT,
+    removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
+    seasonaladjustment::Union{Dict, Nothing}=SEASONALADJUSTMENT_DEFAULT,
+    removemissings::Bool=REMOVEMISSINGS_DEFAULT
     )
 
     return input(
@@ -57,18 +72,24 @@ function input(
         method=method,
         intercept=intercept,
         time=time,
-        panel=panel
+        panel=panel,
+        removeoutliers=removeoutliers,
+        seasonaladjustment=seasonaladjustment,
+        removemissings=removemissings
     )
 end
 
 function input(
     equation::String,
     data::Union{Array{Float64}, Array{Float32}, Array{Union{Float32, Missing}}, Array{Union{Float64, Missing}}, Tuple, DataFrame, Nothing};
-    datanames::Union{Array, Nothing}=nothing,
+    datanames::Union{Array, Array{Symbol, 1}, Nothing}=nothing,
     method::Union{Symbol, String}=METHOD_DEFAULT,
     intercept::Bool=INTERCEPT_DEFAULT,
     time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
-    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT
+    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT,
+    removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
+    seasonaladjustment::Union{Dict, Nothing}=SEASONALADJUSTMENT_DEFAULT,
+    removemissings::Bool=REMOVEMISSINGS_DEFAULT
     )
 
     return input(
@@ -78,19 +99,24 @@ function input(
         intercept=intercept,
         method=method,
         time=time,
-        panel=panel
+        panel=panel,
+        removeoutliers=removeoutliers,
+        seasonaladjustment=seasonaladjustment,
+        removemissings=removemissings
     )
 end
-
 
 function input(
     equation::Array{String},
     data::Union{Array{Float64}, Array{Float32}, Array{Union{Float32, Missing}}, Array{Union{Float64, Missing}}, Tuple, DataFrame, Nothing};
-    datanames::Union{Array, Nothing}=nothing,
+    datanames::Union{Array, Array{Symbol, 1}, Nothing}=nothing,
     method::Union{Symbol, String}=METHOD_DEFAULT,
     intercept::Bool=INTERCEPT_DEFAULT,
     time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
-    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT
+    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT,
+    removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
+    seasonaladjustment::Union{Dict, Nothing}=SEASONALADJUSTMENT_DEFAULT,
+    removemissings::Bool=REMOVEMISSINGS_DEFAULT
     )
 
     datanames = get_datanames_from_data(data, datanames)
@@ -112,18 +138,24 @@ function input(
         intercept=intercept,
         method=method,
         time=time,
-        panel=panel
+        panel=panel,
+        removeoutliers=removeoutliers,
+        seasonaladjustment=seasonaladjustment,
+        removemissings=removemissings
     )
 end
 
 function input(
     equation::Array{Symbol},
     data::Union{Array{Float64}, Array{Float32}, Array{Union{Float32, Missing}}, Array{Union{Float64, Missing}}, Tuple, DataFrame, Nothing};
-    datanames::Union{Array, Nothing}=nothing,
+    datanames::Union{Array, Array{Symbol, 1}, Nothing}=nothing,
     method::Union{Symbol, String}=METHOD_DEFAULT,
     intercept::Bool=INTERCEPT_DEFAULT,
     time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
-    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT
+    panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT,
+    removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
+    seasonaladjustment::Union{Dict, Nothing}=SEASONALADJUSTMENT_DEFAULT,
+    removemissings::Bool=REMOVEMISSINGS_DEFAULT
     )
 
     if length(equation) != size(equation, 1)
@@ -155,7 +187,7 @@ function input(
     end
 
     if !isa(data, Array{Union{Missing, datatype}}) || !isa(data, Array{Union{datatype}})
-        data = convert(Array{Union{Missing, datatype}}, data)
+        data = convert(Matrix{Union{Missing, datatype}}, data)
     end
 
     if time != nothing
@@ -183,7 +215,10 @@ function input(
         method,
         intercept;
         time=time,
-        panel=panel
+        panel=panel,
+        removeoutliers=removeoutliers,
+        seasonaladjustment=seasonaladjustment,
+        removemissings=removemissings
     )
 end
 
@@ -194,7 +229,10 @@ function processinput(
     method::Symbol,
     intercept::Bool;
     time::Union{Symbol, Nothing}=TIME_DEFAULT,
-    panel::Union{Symbol, Nothing}=PANEL_DEFAULT
+    panel::Union{Symbol, Nothing}=PANEL_DEFAULT,
+    removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
+    seasonaladjustment::Union{Dict, Nothing}=SEASONALADJUSTMENT_DEFAULT,
+    removemissings::Bool=REMOVEMISSINGS_DEFAULT
     )
     
     if method == :precise
@@ -215,11 +253,13 @@ function processinput(
 
     (data, datanames) = filter_data_by_selected_columns(data, temp_equation, datanames)
     data = sort_data(data, datanames, panel=panel, time=time)
-        
-    if time != nothing
-        if !validate_time(data, datanames, panel=panel, time=time)
-            #@warn TIME_ERROR
-        end
+    
+    if panel != nothing && !validate_panel(data, datanames, panel=panel)
+        error(PANEL_ERROR)
+    end
+
+    if time != nothing && !validate_time(data, datanames, panel=panel, time=time)
+        error(TIME_ERROR)
     end
 
     (data, datanames) = filter_data_by_selected_columns(data, equation, datanames)
@@ -235,11 +275,24 @@ function processinput(
         push!(datanames, :_cons)
     end
 
-    data = filter_data_by_empty_values(data)
-    data = convert(Array{datatype}, data)
+    if removeoutliers
+        remove_outliers(data)
+    end
 
+    if seasonaladjustment != nothing
+        seasonal_adjustments(data, seasonaladjustment, datanames)
+    end
+
+    if removemissings
+        data = filter_data_by_empty_values(data)
+        data = convert(Array{datatype}, data)
+    else
+        data = convert(Array{Union{Missing, datatype}}, data)
+    end
     depvar_data = data[1:end, 1]
     expvars_data = data[1:end, 2:end]
+
+    nobs = size(depvar_data, 1)
 
     return GSRegData(
         equation,
@@ -251,6 +304,7 @@ function processinput(
         time,
         panel,
         datatype,
+        removemissings,
         nobs
     )
 end

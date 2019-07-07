@@ -1,31 +1,37 @@
 ## UI
-- [ ] Graphics
+ - [ ] Graphics
 
 ## gsreg
 
 ### Inteface
-- [ ] Do all the next steps in one single call.
+ - [ ] Do all the next steps in one single call.
 
 ### Preprocessing
  - [X] Parse a given equation from multiple formats, including R, Stata and DataFrames
  - [X] Reduce the database based on the equation (Including time if it is not included)
  - [X] Order the database by time and panel variables then remove time if is not used as covariate
+ - [X] Panel validation
  - [X] Time validation
  - [X] Transforms data representation for faster compute (Float64, Float32)
  - [X] Adds the intercept if it was expecified
- - [ ] Sort by time and panel
- - [ ] Remove outliers
- - [ ] Seasonal adjustament
+ - [X] Sort by time and panel
+ - [X] Seasonal adjustament
+ - [X] Remove outliers
  - [X] Fixed effect
+ - [X] Remove missings option
 
 ### FeatureExtraction
-- [X] Feature extraction. Optional creation of non-linear realtionships (sqaure, lag, log, inv, interaction)
-- [X] Excludes observations with missing or null values
-- [X] Update readme
-- [X] Fix documentation
-- [ ] Check documentation
-- [ ] Convert every string variable in symbol
-- [ ] Allows to receive GSRegResult
+ - [X] Feature extraction. Optional creation of non-linear realtionships (sqaure, lag, log, inv, interaction)
+ - [X] Excludes observations with missing or null values
+ - [X] Update readme
+ - [X] Fix documentation
+ - [ ] Check documentation
+ - [ ] Convert every string variable in symbol
+ - [ ] Allows to receive GSRegResult
+ - [ ] SI HAY LAG TIENE QUE HABER MISSING
+ - [ ] MISSING AL FINAL
+ - [ ] Update documentation
+
 
 ### Preliminary selection
 - [ ] Preselection with GLM.jl based on covariates number
