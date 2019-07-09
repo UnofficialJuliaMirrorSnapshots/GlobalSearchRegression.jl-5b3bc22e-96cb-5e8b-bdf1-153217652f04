@@ -3,7 +3,6 @@ module Preprocessing
     using Statistics
     using SingularSpectrumAnalysis
     using ..GlobalSearchRegression
-    using ..GlobalSearchRegression: get_column_index, in_vector
 
     include("const.jl")
     include("utils.jl")

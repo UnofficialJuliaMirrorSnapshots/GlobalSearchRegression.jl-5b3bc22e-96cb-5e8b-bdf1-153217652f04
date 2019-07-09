@@ -15,48 +15,53 @@
  - [X] Transforms data representation for faster compute (Float64, Float32)
  - [X] Adds the intercept if it was expecified
  - [X] Sort by time and panel
- - [X] Seasonal adjustament
+ - [X] Seasonal adjustment
  - [X] Remove outliers
  - [X] Fixed effect
- - [X] Remove missings option
-
+ - [X] Option to excludes observations with missing or null values
+ - [X] Create tests
+ - [X] Update Readme
+ - [ ] Test of Seasonal adjustment, panel data and time data
+ 
 ### FeatureExtraction
+ - [X] Allows to receive GSRegData
  - [X] Feature extraction. Optional creation of non-linear realtionships (sqaure, lag, log, inv, interaction)
- - [X] Excludes observations with missing or null values
- - [X] Update readme
- - [X] Fix documentation
- - [ ] Check documentation
- - [ ] Convert every string variable in symbol
- - [ ] Allows to receive GSRegResult
- - [ ] SI HAY LAG TIENE QUE HABER MISSING
- - [ ] MISSING AL FINAL
- - [ ] Update documentation
-
+ - [X] Option to excludes observations with missing or null values
+ - [ ] Keep data
+ - [ ] Create tests
+ - [ ] Update Readme
 
 ### Preliminary selection
-- [ ] Preselection with GLM.jl based on covariates number
- 
+ - [ ] Normalize data in aux database to process
+ - [X] Preselection with GLM.jl based on covariates number
+ - [X] Filter data by results
+ - [ ] Keep data
+ - [ ] Create tests
+ - [ ] Update readme
+
 ### Selection
-- [-] Parallel processing [TEST]
-- [ ] Iterative estimators (LOGIT, PROBIT) *****
-- [X] OLS [TEST]
-- [X] Adjust selection to interact with feature extraction [TEST]
-- [X] Compute t-test [TEST]
-- [ ] Compure z value
-- [X] Outsample [TEST]
-- [X] Compute selection criteria (aic, cic, bic, r2, r2adj, rmse, rmsout, cp)
-- [X] Model averaging [TEST]
-- [X] Residual tests [TEST]
-- [X] Sort by selection criteria
-- [ ] Fix parameters datatypes
-- [ ] Fix GSRegData datatypes
-- [ ] Fix GSRegResult datatypes
-- [ ] Fix documentation
-- [ ] Change module name
+ - [ ] Parallel processing [TEST]
+ - [ ] Iterative estimators (LOGIT, PROBIT) *****
+ - [X] OLS [TEST]
+ - [X] Adjust selection to interact with feature extraction [TEST]
+ - [X] Compute t-test [TEST]
+ - [ ] Compure z value
+ - [X] Outsample [TEST]
+ - [X] Compute selection criteria (aic, cic, bic, r2, r2adj, rmse, rmsout, cp)
+ - [X] Model averaging [TEST]
+ - [X] Residual tests [TEST]
+ - [X] Sort by selection criteria
+ - [ ] Fix parameters datatypes
+ - [ ] Fix GSRegData datatypes
+ - [ ] Fix GSRegResult datatypes
+ - [ ] Fix documentation
+ - [ ] Change module name
+ 
+### K Cross-fold validation ✌
 
 ### Output decoration
-- [ ] CSV
-- [ ] JSON
-- [ ] LaTeX
-- [ ] Jupyter plot
-- [ ] Short console text
+ - [ ] CSV
+ - [ ] JSON
+ - [ ] LaTeX
+ - [ ] Jupyter plot
+ - [ ] Short console text
