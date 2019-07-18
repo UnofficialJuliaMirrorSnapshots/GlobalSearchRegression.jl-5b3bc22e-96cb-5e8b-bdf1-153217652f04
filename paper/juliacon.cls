@@ -438,7 +438,7 @@ the#1\endcsname{\@thmcounter{#1}}\global
 %
 \def\theequation{\arabic{equation}}
 %
-\def\titlepage{\@restonecolfalse\if@twocolumn\@restonecoltrue\twocolumn
+\def\titlepage{\@restonecolfalse\if@twocolumn\@restonecoltrue\onecolumn
  \else \newpage \fi \thispagestyle{empty}\c@page\z@}
 \def\endtitlepage{\if@restonecol\twocolumn \else \newpage \fi}
 %
@@ -497,7 +497,7 @@ the#1\endcsname{\@thmcounter{#1}}\global
 \def\@idxitem{\par\hangindent 40pt}
 \def\subitem{\par\hangindent 40pt \hspace*{20pt}}
 \def\subsubitem{\par\hangindent 40pt \hspace*{30pt}}
-\def\endtheindex{\if@restonecol\twocolumn\else\clearpage\fi}
+\def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
 \def\indexspace{\par \vskip 10pt plus 5pt minus 3pt\relax}
 %
 \def\footnoterule{\kern-3\p@
@@ -800,7 +800,7 @@ to\hsize{\if@nfeven\else\hfil\fi\box\@tempboxa\if@nfeven\hfil\fi}
  \let\@classiv\@marrayclassiv \let\\\@arraycr\def\@halignto{}\@tabarray}
 \def\endmarray{\crcr\egroup\egroup}
 %
-\ps@myheadings \pagenumbering{arabic} \twocolumn
+\ps@myheadings \pagenumbering{arabic} \onecolumn
 %
 \setlength  \labelsep  {.5em}
 \setlength  \labelwidth{\leftmargini}

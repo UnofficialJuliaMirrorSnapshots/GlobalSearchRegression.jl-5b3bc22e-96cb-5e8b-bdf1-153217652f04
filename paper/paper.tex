@@ -1,28 +1,15 @@
-
 % JuliaCon proceedings template
 \documentclass{juliacon}
+\usepackage{amsmath}
 \setcounter{page}{1}
 
-% Additional packages used%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{algorithm,amsmath,xcolor,caption}
-\usepackage[noend]{algpseudocode}
-\usepackage{hyperref}
-\DeclareMathOperator{\sgn}{sign}
-\DeclareCaptionFont{lightblue}{\color{black}}
-\captionsetup[algorithm]{labelfont={bf,lightblue}, textfont={it}}
-\renewcommand{\thealgorithm}{\arabic{algorithm}}
-\usepackage{array}
-\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \begin{document}
-
 \input{header}
-
 \maketitle
-
 \begin{abstract}
-The aim of this paper is twofold. The first one is to describe a novel research-project aimed at building bridges between machine learning and econometric worlds. The second one is to introduce the main characteristics and comparative performance of the first Julia-native all-subset regression algorithm included in \verb GlobalSearchRegression.jl  (v1.0.3). As other available alternatives, this algorithm allows researchers to obtain the best model specification among all possible covariate combinations - in terms of user defined information criteria-, but up to 3165 and 197 times faster than STATA and R alternatives, respectively. 
+
+The aim of this paper is twofold. The first one is to describe a novel research-project designed for building bridges between machine learning and econometric worlds. The second one is to introduce the main characteristics and comparative performance of the first Julia-native all-subset regression algorithm included in \verb GlobalSearchRegression.jl  (v1.0.3). As other available alternatives, this algorithm allows researchers to obtain the best model specification among all possible covariate combinations - in terms of user defined information criteria-, but up to 3165 and 197 times faster than STATA and R alternatives, respectively. 
+
 \end{abstract}
 
 \section{Introduction}
@@ -48,28 +35,30 @@ Following Varian’s \cite{varian2014} advices, about ML and EC complementaritie
 
 The objective of this paper is to introduce the main characteristics and comparative performance of a key layer of our methodology: the modified all-subset regression algorithm included in \href{https://github.com/ParallelGSReg/GlobalSearchRegression.jl}{GlobalSearchRegression.jl} (v1.0.3). As other available alternatives (like \href{https://cran.r-project.org/web/packages/MuMIn/MuMIn.pdf}{MuMin-pdredge} in R, or \href{https://www.researchgate.net/profile/Pablo_Gluzmann/publication/264782750_Global_Search_Regression_A_New_Automatic_Model-selection_Technique_for_Cross-section_Time-series_and_Panel-data_Regressions/links/53eed18a0cf23733e812c10d/Global-Search-Regression-A-New-Automatic-Model-selection-Technique-for-Cross-section-Time-series-and-Panel-data-Regressions.pdf?origin=publication_detail}{GSREG} Stata alternatives), this Julia algorithm allows researchers to obtain the best model specification among all possible covariate/feature combinations - in terms of user defined information criteria-, but up to 3165 times faster than Stata and 197 times faster than R. \vskip 6pt
 
+
 \section{Package's main features}
 \label{sec:packagefeatures}
-%
 
 Written in Julia, GlobalSearchRegression is a parallel (and improved) version of the Stata-GSREG all-subset regression command (get the original code \href{https://ideas.repec.org/c/boc/bocode/s457737.html}{here}). The package structure is quite simple, as shown in figure 1:
 
 
 %%%%%%%%%%%%%%%%%% Figure 1
 \begin{figure}[h]
-\centerline{\includegraphics[width=10cm]{paper/Images/flowchart.png}}
+\centerline{\includegraphics[width=10cm]{flowchart.png}}
 \caption{ GlobalSearchRegression.jl Structure Flowchart}
 	\label{fig:sample_figure}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Through the gsreg function of the \verb interface.jl  internal package, users set the appropriate database to be used, the general unrestricted model -GUM, which defines the search space- and additional options for model selection. With this information and complementary supporting functions and definitions provided by \verb strings.jl  -i.e. error messages-, \verb utils.jl  -i.e. equation formatting, combinatorial analysis, database manipulation, sorting results, etc.- and \verb gsreg_results.jl  -i.e. the structure to save estimation results-, the \verb core.jl  package perform the all-subset-regression algorithm explained in the pseudocode below, to obtain the following outputs: 1) a matrix -optionally exported to a csv file through \verb utils.jl-  including regression coefficients, selection criteria, observations and (optionally) t-test, residual tests, averaging-weights and out-of-sample metrics for every alternative model; 2) a text file -also displayed on screen- which contains the best model specification and (optionally) model averaging results in terms of the user-selected information criteria -see multiple examples in \verb runtest.jl-. \vskip 6pt
-
+\break
 
 %%%%%%%%%%%%%%%%%%%%%%% Algorithm 1
-\begin{algorithm}[ht]
-  \scriptsize
-  \caption{module Core.jl}
+\begin{listing}
+\hline
+\center{ \textbf{Pseudo-code for module Core.jl}}
+\vspace{2mm}
+\hline
   \begin{enumerate}
     
     \item[1.] \textit{\textbf{function} gsreg\_single\_proc\_results!(args…)}
@@ -118,23 +107,25 @@ Through the gsreg function of the \verb interface.jl  internal package, users se
     \item[6.] Optionally send the results structure to \verb utils.jl  to export a csv file.
   \end{enumerate}
 
-\textbf{end} module \verb Core.jl .
-\end{algorithm}
+\begin{flushleft}
+\textbf{end} module \verb Core.jl . \hfill
+\end{flushleft}
+\hline
+\end{listing}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Comparative performance against \textit{R} and \textit{STATA}}
 \label{sec:comparativeperf}
 
 
 %%%%%%%%%%%%%%%%%% Table 1
 \begin{table*}[!t]
-\tabcolsep1pt
 \centering
 \tbl{Average execution time and speed-up metrics -over 5 runs-}{
-    \scalebox{0.8}{
-    \begin{tabular}{|C{1cm}|C{1cm}|C{1cm}|C{1.5cm}|C{1.5cm}|C{1.5cm}|C{1.5cm}|C{1.5cm}|C{1.5cm}|C{1.5cm}|C{1.5cm}|}
+\scalebox{0.85}{
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
     \hline
-    \multirow{Cov.} & \multirow{Obs} & \multirow{Threads} & \multicolumn{3}{c|}{Execution time (in seconds)} & \multicolumn{3}{c|}{Parallel Speed-up} & \multicolumn{2}{c|}{Julia Speed-up} \\
+    \multirow{Cov.} & \multirow{Obs} & \multirow{Threads} & \multicolumn{3}{|c|}{Execution time (in seconds)} & \multicolumn{3}{
+    c|}{Parallel Speed-up} & \multicolumn{2}{|c|}{Julia Speed-up} \\
 \cline{4-11}      &   &   & Julia & R & Stata & Julia & R & Stata & Over R & Over Stata \\
     \hline
     15 & 100 & 1 & 14.0 & 69.1 & 646.6 & 1.0 & 1.0 & 1.0 & 4.9 & 46.2 \\
@@ -208,8 +199,8 @@ Through the gsreg function of the \verb interface.jl  internal package, users se
     25 & 10000 & 16 & 6825.6 &   &   & 13.7 &   &   &   &  \\
     \hline
     25 & 10000 & 32 & 4660.4 &   &   & 20.1 &   &   &   &  \\
-    \hline
-    \end{tabular}    }   }
+    \hline 
+    \end{tabular}}}
 \end{table*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,15 +220,15 @@ A detailed speed-up analysis is also available for the 25-covariate case. In fig
 \begin{figure*}[!t]
   \begin{subfigure}
     \centering
-    \includegraphics[width=5.5cm]{paper/Images/juliatime.png}
+    \includegraphics[width=5.5cm]{juliatime.png}
   \end{subfigure}
     \centering
   \begin{subfigure}
-    \includegraphics[width=5.5cm]{paper/Images/statatime.png}
+    \includegraphics[width=5.5cm]{statatime.png}
   \end{subfigure}
     \centering
   \begin{subfigure}
-    \includegraphics[width=5.5cm]{paper/Images/rtime.png}
+    \includegraphics[width=5.5cm]{rtime.png}
   \end{subfigure}
   \vspace{2mm}
 \caption{Execution time Kernel Densities from Julia, R and Stata}
@@ -246,7 +237,7 @@ A detailed speed-up analysis is also available for the 25-covariate case. In fig
 %%%%%%%%%%%%%%%%%% Figure 3
 \begin{figure*}[!t]
 \centering
-    \includegraphics[width=16cm]{paper/Images/juliaexe.PNG}  
+    \includegraphics[width=16cm]{juliaexe.PNG}  
     \vspace{2mm}
     \caption{Execution time, speed-up and speed-up efficiency for the 25-covariate case using GlobalSearchRegression.jl}
 \end{figure*}
@@ -257,7 +248,9 @@ A detailed speed-up analysis is also available for the 25-covariate case. In fig
 \subsection{JULIA platform}
 \label{subsub:juliaplat}
 
-Despite some \verb GlobalSearchRegression.jl  specific features to be examined below, our all-subset-regression algorithm benefits from the well-known Julia language efficiency for High Performance Computing tasks. \vskip 6pt
+Despite some \verb GlobalSearchRegression.jl  specific features to be examined below, our all-subset-regression algorithm benefits from the well-known Julia language efficiency for High Performance Computing tasks.
+
+\vspace{-2mm}
 
 %%%%%%%%%%%%%%%%%% Table 2
 \begin{table}[!h]
@@ -287,12 +280,13 @@ Despite some \verb GlobalSearchRegression.jl  specific features to be examined b
     \hline
     Weighted-Average & 12.15 & 22.01 \\
     \hline
+    \multicolumn{3}{p{8.5cm}}{Note: Weighted-average were estimated as the Ratio between total execution time for R or Stata, and Julia's total execution time. Benchmarkings were obtained using a i7-4700MQ quad-core build, with 8 GiB of DDR3 1600 Mhz RAM, under Windows 8 and running Julia 1.1.0, Stata 15 and R 3.5.3}
     \end{tabular}
     }
-    \caption*{Note: Weighted-average were estimated as the Ratio between total execution time for R or Stata, and Julia's total execution time -for all basic functions-. Benchmarkings were obtained using a i7-4700MQ quad-core build, with 8 GiB of DDR3 1600 Mhz RAM, under Windows 8 and running Julia 1.1.0, Stata 15 and R 3.5.3}
 \end{table}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\break
 
 Julia JIT-compilation allows packages to run faster than those executed using interpreted or byte-compiled languages (like R or Stata-Mata). Indeed, basic functions running on Julia can be up to 251 and 368 times faster than those running in R and Stata, respectively -with an average speed-up of 75 and 90, see Table 2-.
 
@@ -342,33 +336,39 @@ where
 
 The QR decomposition is fast and provides stable numerical solutions under rank-deficient matrices. Alternative factorizations are either slower (SVD decomposition) or potentially unstable (Cholesky decomposition)\cite{agarwal2014}. \vskip 6pt
 
-\verb GlobalSearchRegression.jl  OLS estimation through QR-decompositions outperform existing Julia alternatives (like \verb GLM.jl)  allowing for large speed-ups compared with \verb R-lm    and \verb Stata-regress  commands. The following table shows execution time differences for a 200 covariates - 1000 observations - multivariate linear regression \footnote{Execution times were calculated for alternative OLS algorithms available for all-subset-regression packages in Julia, R and Stata.}:
+\verb GlobalSearchRegression.jl  OLS estimation through QR-decompositions outperform existing Julia alternatives (like \verb GLM.jl)  allowing for large speed-ups compared with \verb R-lm    and \verb Stata-regress  commands. Table 3 shows execution time differences for a 200 covariates - 1000 observations - multivariate linear regression \footnote{Execution times were calculated for alternative OLS algorithms available for all-subset-regression packages in Julia, R and Stata.}.
+\vskip 6pt
 
+It must be notice that execution times are compilation-free, because all-subset-regression algorithms must perform thousand to millions of regressions where compilation time is absent (it only affects the first regression).
+\vskip 6pt
+
+\break
 %%%%%%%%%%%%%%%%%% Table 3
-\begin{table}[htbp]
+\begin{table}[!h]
   \centering
-\tbl{Execution times for different OLS algorithms in R, Stata and Julia}{
+\tbl{Execution times for OLS algorithms in R, Stata and Julia}{
     \begin{tabular}{|c|c|c|c|c|}
     \hline
       & GlobalSearchRegression.jl &R-lm & Stata-reg & GLM.jl \\
     \hline
-    Execution time & 0.012 & 0.06 & 0.2 & 0.023 \\
+    Exec. time & 0.012 & 0.06 & 0.2 & 0.023 \\
     \hline
     Speed-up & 1 & 5 & 16.67 & 1.92 \\
     \hline
+    \multicolumn{5}{p{8.5cm}}{Note: Execution times were obtained using a i7-7500 dual-core build, with 8 GiB of DDR4 RAM, under Windows 10 and running Julia 1.1.0, Stata 13 and RStudio 3.6.0. Speed-ups are obtaining dividing each execution time by the GlobalSearchRegression.jl execution time.} \\
     \end{tabular}}
-    \caption*{Note: Execution times were obtained using a i7-7500 dual-core build, with 8 GiB of DDR4 RAM, under Windows 10 and running Julia 1.1.0, Stata 13 and RStudio 3.6.0. Speed-ups are obtaining dividing each execution time by the GlobalSearchRegression.jl execution time.}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-It must be notice that execution times are compilation-free, because all-subset-regression algorithms must perform thousand to millions of regressions where compilation time is absent (it only affects the first regression).
+
 
 \section{Conclusion}
 \label{sec:con}
-
+\vspace{2mm}
 \begin{quote}
 \textit{"There are a number of areas where there would be opportunities for fruitful collaboration between econometrics and machine learning [... and] the most important area for collaboration involves causal inference"}. \cite{varian2014}
 \end{quote}
+\vspace{2mm}
 
 As Hal Varian emphasizes, there is a need for mutual collaboration between machine learning developers/practitioners and econometricians. In this paper we describe a research-project aimed at building bridges between machine learning and econometric worlds and introduce the main characteristics of its first outcome: a Julia-native all-subset regression algorithm (\verb GlobalSearchRegression.jl)  which runs up to 3165 and 197 times faster than existing Stata and R alternatives, respectively. \vskip 6pt
 
@@ -379,7 +379,10 @@ Notwithstanding, increasing availability of Big and -more challenging- Fat-data,
 \section{Acknowledgments}
 \label{sec:ackno}
 This research benefited from the financial support of 1) the National Scientific and Technical Research Council and the YPF-Foundation (PIO CONICET-YPF 13320150100020CO); and 2) the National Agency for Scientific and Technological Promotion (PICT-2017-0867). We would also like to thank PhD. Jorge Carrera for his technical assistance on Big-data econometric algorithms.
+
+
 \input{bib.tex}
 
 \end{document}
 
+% Inspired by the International Journal of Computer Applications template
