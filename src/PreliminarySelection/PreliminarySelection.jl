@@ -1,12 +1,11 @@
 module PreliminarySelection
+    using GLMNet
+    using ..GlobalSearchRegression
 
-    using GLMNet, ..GlobalSearchRegression
+    export lasso!, lasso, lassoselection
 
     include("const.jl")
-    include("utils.jl")
     include("strings.jl")
+    include("utils.jl")
     include("core.jl")
-
-    export lasso
-
 end
