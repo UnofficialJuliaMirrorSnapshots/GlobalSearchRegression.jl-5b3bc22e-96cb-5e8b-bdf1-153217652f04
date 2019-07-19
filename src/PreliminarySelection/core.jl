@@ -1,39 +1,66 @@
+# TODO: Merge _lasso and lasso
+function _lasso(data::GlobalSearchRegression.GSRegData)
+    return _lasso!(data)
+end
+
+# TODO: Merge _lasso! and lasso!
+function _lasso!(data::GlobalSearchRegression.GSRegData)
+    res = lasso!(data)
+    res[1].extras[:lasso] = Dict()
+    res[1].extras[:lasso][:betas] = res[2]
+
+    return res[1]
+end
+
 function lasso(data::GlobalSearchRegression.GSRegData)
-    new_data = 
     lasso!(GlobalSearchRegression.copy_data(data))
 end
 
 function lasso!(data::GlobalSearchRegression.GSRegData)
-    data = GlobalSearchRegression.filter_data_by_empty_values(data)
-    data = GlobalSearchRegression.convert_data(data)
-
     betas = lassoselection(data)
+
     data.extras[:lasso_betas] = betas
 
     vars = map(b -> b != 0, betas)
+
+    if data.intercept
+        vars[GlobalSearchRegression.get_column_index(:_cons, data.expvars)] = true
+    end
+
     data.expvars = data.expvars[vars]
     data.expvars_data = data.expvars_data[:,vars]
     
-    data
+    data = addextras(data)
+
+    return data, vars
 end
 
-computablevars(nvars) = min(Int(floor(log(2,Sys.total_memory()/2 ^30) + 21)), nvars)
+function computablevars(nvars::Int)
+    return 8
+    min(Int(floor(log(2,Sys.total_memory()/2 ^30) + 21)), nvars)
+end
 
-function lassoselection(data::GlobalSearchRegression.GSRegData; nvars::Int64=nothing)
-    nvars = (nvars != nothing) ? nvars : computablevars(size(data.expvars,1))
+function lassoselection(data)
+    data = GlobalSearchRegression.filter_data_by_empty_values(data)
+    data = GlobalSearchRegression.convert_data(data)
+    nvars = computablevars(size(data.expvars,1))
+
     if nvars >= size(data.expvars,1)
         return data.expvars
     end
+
     path = glmnet(data.expvars_data, data.depvar_data; nlambda=1000)
-    best = nvars
-    for cant in nactive(path.betas)
+    
+    best = 1
+    for (i, cant) in enumerate(nactive(path.betas))
         if cant >= nvars
             if cant == nvars 
-                best = cant
+                best = i
             end
             break;
         end
-        best = cant
+        best = i
     end
+
     path.betas[:, best]
 end

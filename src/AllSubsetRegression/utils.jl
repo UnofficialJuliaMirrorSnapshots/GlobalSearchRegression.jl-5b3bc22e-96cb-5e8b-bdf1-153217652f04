@@ -1,14 +1,14 @@
 """
 Initialize options
 """
-function create_result(data, outsample, criteria, ttest, modelavg, residualtest, orderresults)  
+function create_result(data, fixedvariables, outsample, criteria, ttest, modelavg, residualtest, orderresults)  
 
     if :r2adj ∉ criteria
         push!(criteria, :r2adj)
     end
 
-    if :rmseout ∉ criteria && outsample != OUTSAMPLE_DEFAULT
-        push!(criteria, :rmseout)
+    if :rmseout ∉ criteria && (outsample isa Array && size(outsample, 1) > 0) || (!(outsample isa Array) && outsample > 0)
+            push!(criteria, :rmseout)
     end
 
     datanames = create_datanames(data, criteria, ttest, modelavg, residualtest)
@@ -28,6 +28,7 @@ function create_result(data, outsample, criteria, ttest, modelavg, residualtest,
     return AllSubsetRegressionResult(
         datanames,
         modelavg_datanames,
+        fixedvariables,
         outsample,
         criteria,
         modelavg,
@@ -75,37 +76,6 @@ function create_datanames(data, criteria, ttest, modelavg, residualtest)
 end
 
 """
-Creates an array with keys and array positions
-"""
-function create_datanames_index(datanames)
-    header = Dict{Symbol,Int64}()
-    for (index, name) in enumerate(datanames)
-        header[name] = index
-    end
-    return header
-end
-
-"""
-Returns selected appropiate covariates for each iteration
-"""
-function get_selected_variables(order, datanames, intercept; num_jobs=nothing, num_job=nothing, iteration_num=nothing)
-    cols = zeros(Int64, 0)
-    binary = string(order, base = 2)
-    k = 1
-
-    for order = 1:length(binary)
-        if binary[length(binary) - order + 1] == '1'
-            push!(cols, k)
-        end
-        k = k + 1
-    end
-    if intercept
-        push!(cols, GlobalSearchRegression.get_column_index(:_cons, datanames))
-    end
-    return cols
-end
-
-"""
 Get insample data view
 """
 function get_insample_subset(depvar_data, expvars_data, outsample, selected_variables_index)
@@ -135,7 +105,7 @@ function get_outsample_subset(depvar_data, expvars_data, outsample, selected_var
         depvar_view = depvar_data[end-outsample:end, 1]
         expvars_view = expvars_data[end-outsample:end, selected_variables_index]
     end
-    return depvar_view,expvars_view
+    return depvar_view, expvars_view
 end
 
 """
@@ -169,4 +139,26 @@ function sortrows(B::AbstractMatrix,cols::Array; kws...)
         end
     end
     return B
+end
+
+function get_varnames(datanames)
+    map(h -> chop("$h", tail=2), filter(s -> endswith("$s", "_b"), datanames))
+end
+
+"""
+Add values to extras
+"""
+function addextras(data, result)
+    data.extras[GlobalSearchRegression.generate_extra_key(ALLSUBSETREGRESSION_EXTRAKEY, data.extras)] = Dict(
+        :datanames => result.datanames,
+        :fixedvariables => result.fixedvariables,
+        :outsample => result.outsample,
+        :criteria => result.criteria,
+        :modelavg => result.modelavg,
+        :ttest => result.ttest,
+        :residualtest => result.residualtest,
+        :orderresults => result.orderresults,
+        :nobs => result.nobs        
+    )
+    return data
 end

@@ -53,8 +53,10 @@
  - [X] Fix documentation
  - [X] Change module name
  - [X] Initialize options
+ - [ ] Fixed variables
  - [ ] Iterative estimators (LOGIT, PROBIT)
  - [ ] Compure z value
+ - [ ] T-test probability
 
 ### K-fold cross-validation ✌
  kcross = true
@@ -78,9 +80,9 @@ k14 = 15
   - sequential
 
 ### OutputDecoration
- - [ ] CSV
- - [ ] JSON
- - [ ] LaTeX
+ - [X] CSV
+ - [X] JSON
+ - [x] LaTeX
  - [ ] Jupyter plot
  - [ ] Short console text
 

@@ -140,7 +140,7 @@ function copy_data(data::GSRegData)
         data.nobs
     )
 
-    new_data.extras = copy(data.extras)
+    new_data.extras = data.extras
     new_data.options = copy(data.options)
     new_data.previous_data = copy(data.previous_data)
     new_data.results = copy(data.results)
@@ -172,84 +172,79 @@ function copy_data!(from_data::GSRegData, to_data::GSRegData)
     return to_data
 end
 
-# OLD
-
 """
-Returns the position of the header value based on this structure.
-    - Index
-    - Covariates
-        * b
-        * bstd
-        * T-test
-    - Equation general information merged with criteria user-defined options.
-    - Order from user combined criteria
-    - Weight
+Generate extra key
 """
-function get_data_position(name, expvars, intercept, ttest, residualtest, time, criteria)
-    data_cols_num = length(expvars)
-    mult_col = (ttest == true) ? 3 : 1
-
-    # INDEX
-    if name == INDEX
-        return 1
-    end
-    displacement = 1
-    displacement += mult_col * (data_cols_num) + 1
-
-    # EQUATION_GENERAL_INFORMATION
-    testfields = (residualtest != nothing && residualtest) ? ((time != nothing) ? RESIDUAL_TESTS_TIME : RESIDUAL_TESTS_CROSS) : []
-    equation_general_information_and_criteria = unique([ EQUATION_GENERAL_INFORMATION; criteria; testfields ])
-    if name in equation_general_information_and_criteria
-        return displacement + findfirst(isequal(name), equation_general_information_and_criteria) - 1
-    end
-    displacement += length(equation_general_information_and_criteria)
-
-    if name == ORDER
-        return displacement
-    end
-    displacement += 1
-
-    if name == WEIGHT
-        return displacement
-    end
-    displacement = 1
-
-    # Covariates
-    string_name = string(name)
-    base_name = Symbol(replace(replace(replace(string_name, "_bstd" => ""), "_t" => ""), "_b" => ""))
-    if base_name in expvars
-        displacement = displacement + (findfirst(isequal(base_name), expvars) - 1) * mult_col
-        if occursin("_bstd", string_name)
-            return displacement + 2
+function generate_extra_key(extra_key, extras)
+    if !(extra_key in keys(extras))
+        return extra_key
+    else
+        posfix = 2
+        while Symbol(string(extra_key, "_", posfix)) in keys(extras)
+            posfix = posfix + 1
         end
-        if occursin("_b", string_name)
-            return displacement + 1
-        end
-        if occursin("_t", string_name)
-            return displacement + 3
-        end
+        return Symbol(string(extra_key, "_", posfix))
     end
 end
 
+"""
+Returns if feature extraction module was selected
+"""
+function featureextraction_enabled(fe_sqr, fe_log, fe_inv, fe_lag, interaction)
+    return fe_sqr != nothing || fe_log != nothing || fe_inv != nothing || fe_lag != nothing || interaction != nothing
+end
 
-function export_csv(io::IO, result::GSRegResult)
-    head = []
-    for elem in sort(collect(Dict(value => key for (key, value) in result.header)))
-         push!(head, elem[2])
+"""
+Returns if preliminary selection was selected
+"""
+function preliminaryselection_enabled(preliminaryselection)
+    return preliminaryselection != nothing
+end
+
+"""
+Validates if preliminary selecttion method exists
+"""
+function validate_preliminaryselection(preliminaryselection)
+    return preliminaryselection in VALID_PRELIMINARYSELECTION
+end
+
+"""
+Add result
+"""
+function addresult!(data, result)
+    push!(data.results, result)
+
+    return data
+end
+
+"""
+Creates an array with keys and array positions
+"""
+function create_datanames_index(datanames)
+    header = Dict{Symbol,Int64}()
+    for (index, name) in enumerate(datanames)
+        header[name] = index
     end
-    writedlm(io, [head], ',')
-    writedlm(io, result.results, ',')
+    return header
 end
 
-"""
-Exports main results with headers to file
-"""
-function export_csv(output::String, result::GSRegResult)
-    file = open(output, "w")
-    export_csv(file, result)
-    close(file)
-end
 
-function get_data_column_pos(name, datanames)
-    return findfirst(x -> name==x, datanames)
+"""
+Returns selected appropiate covariates for each iteration
+"""
+function get_selected_variables(order, datanames, intercept; fixedvariables=nothing, num_jobs=nothing, num_job=nothing, iteration_num=nothing)
+    cols = zeros(Int64, 0)
+    binary = string(order, base = 2)
+    k = 1
+
+    for order = 1:length(binary)
+        if binary[length(binary) - order + 1] == '1'
+            push!(cols, k)
+        end
+        k = k + 1
+    end
+    if intercept
+        push!(cols, GlobalSearchRegression.get_column_index(:_cons, datanames))
+    end
+    return cols
 end

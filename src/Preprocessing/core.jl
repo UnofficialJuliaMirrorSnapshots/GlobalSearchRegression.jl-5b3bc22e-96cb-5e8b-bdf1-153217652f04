@@ -4,8 +4,8 @@ function input(
     datanames::Union{Array, Array{Symbol, 1}, Nothing}=nothing,
     method::Union{Symbol, String}=METHOD_DEFAULT,
     intercept::Bool=INTERCEPT_DEFAULT,
-    time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
     panel::Union{Symbol, String, Nothing}=PANEL_DEFAULT,
+    time::Union{Symbol, String, Nothing}=TIME_DEFAULT,
     seasonaladjustment::Union{Dict, Array, Nothing}=SEASONALADJUSTMENT_DEFAULT,
     removeoutliers::Bool=REMOVEOUTLIERS_DEFAULT,
     removemissings::Bool=REMOVEMISSINGS_DEFAULT
@@ -17,8 +17,8 @@ function input(
         datanames=datanames,
         method=method,
         intercept=intercept,
-        time=time,
         panel=panel,
+        time=time,
         seasonaladjustment=seasonaladjustment,
         removeoutliers=removeoutliers,
         removemissings=removemissings
@@ -300,7 +300,7 @@ function processinput(
 
     nobs = size(depvar_data, 1)
 
-    return GlobalSearchRegression.GSRegData(
+    gsreg_data = GlobalSearchRegression.GSRegData(
         equation,
         depvar,
         expvars,
@@ -315,4 +315,8 @@ function processinput(
         removemissings,
         nobs
     )
+
+    gsreg_data = addextras(gsreg_data, method, seasonaladjustment, removeoutliers)
+
+    return gsreg_data
 end

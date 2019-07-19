@@ -1,5 +1,6 @@
-function ols!(
+function ols(
         data::GlobalSearchRegression.GSRegData;
+        fixedvariables::Array=FIXEDVARIABLES_DEFAULT,
         outsample=OUTSAMPLE_DEFAULT,
         criteria::Array=CRITERIA_DEFAULT,
         ttest::Bool=TTEST_DEFAULT,
@@ -8,8 +9,9 @@ function ols!(
         orderresults::Bool=ORDERRESULTS_DEFAULT
     )
 
-    result = ols(
-        data,
+    return ols!(
+        GlobalSearchRegression.copy_data(data),
+        fixedvariables=fixedvariables,
         outsample=outsample,
         criteria=criteria,
         ttest=ttest,
@@ -17,26 +19,25 @@ function ols!(
         residualtest=residualtest,
         orderresults=orderresults
     )
-
-    push!(data.results, result)
-
-    return data
 end
 
-function ols(
-        data::GlobalSearchRegression.GSRegData;
-        outsample=OUTSAMPLE_DEFAULT,
-        criteria::Array=CRITERIA_DEFAULT,
-        ttest::Bool=TTEST_DEFAULT,
-        modelavg::Bool=MODELAVG_DEFAULT,
-        residualtest::Bool=RESIDUALTEST_DEFAULT,
-        orderresults::Bool=ORDERRESULTS_DEFAULT
-    )
+function ols!(
+    data::GlobalSearchRegression.GSRegData;
+    fixedvariables::Array=FIXEDVARIABLES_DEFAULT,
+    outsample=OUTSAMPLE_DEFAULT,
+    criteria::Array=CRITERIA_DEFAULT,
+    ttest::Bool=TTEST_DEFAULT,
+    modelavg::Bool=MODELAVG_DEFAULT,
+    residualtest::Bool=RESIDUALTEST_DEFAULT,
+    orderresults::Bool=ORDERRESULTS_DEFAULT
+)
 
-    result = create_result(data, outsample, criteria, ttest, modelavg, residualtest, orderresults)
+    result = create_result(data, fixedvariables, outsample, criteria, ttest, modelavg, residualtest, orderresults)
     execute!(data, result)
+    GlobalSearchRegression.addresult!(data, result)
+    data = addextras(data, result)
 
-    return result
+    return data
 end
 
 function execute!(data::GlobalSearchRegression.GSRegData, result::AllSubsetRegressionResult)
@@ -53,10 +54,10 @@ function execute!(data::GlobalSearchRegression.GSRegData, result::AllSubsetRegre
     depvar_data = convert(SharedArray, data.depvar_data)
     expvars_data = convert(SharedArray, data.expvars_data)
     result_data = fill!(SharedArray{data.datatype}(num_operations, size(result.datanames, 1)), NaN)
-    datanames_index = create_datanames_index(result.datanames)
+    datanames_index = GlobalSearchRegression.create_datanames_index(result.datanames)
     if nprocs() == nworkers()
         for order = 1:num_operations
-            execute_row!(order, data.depvar, data.expvars, datanames_index, depvar_data, expvars_data, result_data, data.intercept, data.time, data.datatype, result.outsample, result.criteria, result.ttest, result.residualtest)
+            execute_row!(order, data.depvar, data.expvars, datanames_index, depvar_data, expvars_data, result_data, data.intercept, data.time, data.datatype, result.outsample, result.criteria, result.ttest, result.residualtest, result.fixedvariables)
         end
     else
         ops_per_worker = div(num_operations, nworkers())
@@ -67,7 +68,7 @@ function execute!(data::GlobalSearchRegression.GSRegData, result::AllSubsetRegre
         end
         jobs = []
         for num_job = 1:num_jobs
-            push!(jobs, @spawnat num_job+1 execute_job!(num_job, num_jobs, ops_per_worker, data.depvar, data.expvars, datanames_index, depvar_data, expvars_data, result_data, data.intercept, data.time, data.datatype, result.outsample, result.criteria, result.ttest, result.residualtest))
+            push!(jobs, @spawnat num_job+1 execute_job!(num_job, num_jobs, ops_per_worker, data.depvar, data.expvars, datanames_index, depvar_data, expvars_data, result_data, data.intercept, data.time, data.datatype, result.outsample, result.criteria, result.ttest, result.residualtest, result.fixedvariables))
         end
         for job in jobs
             fetch(job)
@@ -77,7 +78,7 @@ function execute!(data::GlobalSearchRegression.GSRegData, result::AllSubsetRegre
         if remainder > 0
             for j = 1:remainder
                 order = j + ops_per_worker * num_jobs
-                execute_row!(order, data.depvar, data.expvars, datanames_index, depvar_data, expvars_data, result_data, data.intercept, data.time, data.datatype, result.outsample, result.criteria, result.ttest, result.residualtest)
+                execute_row!(order, data.depvar, data.expvars, datanames_index, depvar_data, expvars_data, result_data, data.intercept, data.time, data.datatype, result.outsample, result.criteria, result.ttest, result.residualtest, result.fixedvariables)
             end
         end
     end
@@ -156,7 +157,8 @@ function execute_job!(
     outsample,
     criteria,
     ttest,
-    residualtest
+    residualtest,
+    fixedvariables
 )
     @time begin
 
@@ -177,6 +179,7 @@ function execute_job!(
             criteria,
             ttest,
             residualtest,
+            fixedvariables,
             num_jobs=num_jobs,
             num_job=num_job,
             iteration_num=j
@@ -199,12 +202,13 @@ function execute_row!(
     outsample,
     criteria,
     ttest,
-    residualtest;
+    residualtest,
+    fixedvariables;
     num_jobs=nothing,
     num_job=nothing,
     iteration_num=nothing
 )
-    selected_variables_index = get_selected_variables(order, expvars, intercept, num_jobs=num_jobs, num_job=num_job, iteration_num=iteration_num)    
+    selected_variables_index = GlobalSearchRegression.get_selected_variables(order, expvars, intercept, fixedvariables=fixedvariables, num_jobs=num_jobs, num_job=num_job, iteration_num=iteration_num)    
 
     depvar_subset, expvars_subset = get_insample_subset(depvar_data, expvars_data, outsample, selected_variables_index)
     outsample_enabled = size(depvar_subset, 1) < size(depvar_data, 1)
@@ -212,14 +216,14 @@ function execute_row!(
     nobs = size(depvar_subset, 1)
     ncoef = size(expvars_subset, 2)
     qrf = qr(expvars_subset)
-    b = qrf \ depvar_subset                   # estimate
-    ŷ = expvars_subset * b                    # predicted values
-    er = depvar_subset - ŷ                    # in-sample residuals
-    er2 = er .^ 2                           # squared errors
-    sse = sum(er2)                          # residual sum of squares
-    df_e = nobs - ncoef                     # degrees of freedom
-    rmse = sqrt(sse / nobs)                 # root mean squared error
-    r2 = 1 - var(er) / var(depvar_subset)     # model R-squared
+    b = qrf \ depvar_subset               # estimate
+    ŷ = expvars_subset * b                # predicted values
+    er = depvar_subset - ŷ                # in-sample residuals
+    er2 = er .^ 2                         # squared errors
+    sse = sum(er2)                        # residual sum of squares
+    df_e = nobs - ncoef                   # degrees of freedom
+    rmse = sqrt(sse / nobs)               # root mean squared error
+    r2 = 1 - var(er) / var(depvar_subset) # model R-squared
 
     if ttest
         bstd = sqrt.( sum( (UpperTriangular(qrf.R) \ Matrix(1.0LinearAlgebra.I, ncoef, ncoef) ) .^ 2, dims=2) * (sse / df_e) )
@@ -228,12 +232,12 @@ function execute_row!(
     if outsample_enabled > 0
         depvar_outsample_subset, expvars_outsample_subset = get_outsample_subset(depvar_data, expvars_data, outsample, selected_variables_index)
         erout = depvar_outsample_subset - expvars_outsample_subset * b  # out-of-sample residuals
-        sseout = sum(erout .^ 2)                                    # residual sum of squares
+        sseout = sum(erout .^ 2)                                        # residual sum of squares
         outsample_count = outsample
         if (isa(outsample, Array))
             outsample_count = size(outsample, 1)
         end
-        rmseout = sqrt(sseout / outsample_count)                          # root mean squared error
+        rmseout = sqrt(sseout / outsample_count)                        # root mean squared error
         result_data[ order, datanames_index[:rmseout] ] = rmseout
     end
 
@@ -321,91 +325,4 @@ function execute_row!(
         end
     end
     
-end
-
-# Todo: REMOVE
-function to_string(data)
-    result = data.results[1]
-    datanames_index = create_datanames_index(result.datanames)
-
-    out = ""
-    out *= @sprintf("\n")
-    out *= @sprintf("══════════════════════════════════════════════════════════════════════════════\n")
-    out *= @sprintf("                              Best model results                              \n")
-    out *= @sprintf("══════════════════════════════════════════════════════════════════════════════\n")
-    out *= @sprintf("                                                                              \n")
-    out *= @sprintf("                                     Dependent variable: %s                   \n", data.depvar)
-    out *= @sprintf("                                     ─────────────────────────────────────────\n")
-    out *= @sprintf("                                                                              \n")
-    out *= @sprintf(" Selected covariates                 Coef.")
-    if result.ttest
-        out *= @sprintf("        Std.         t-test")
-    end
-    out *= @sprintf("\n")
-    out *= @sprintf("──────────────────────────────────────────────────────────────────────────────\n")
-
-    cols = get_selected_variables(Int64(result.bestresult_data[datanames_index[:index]]), data.expvars, data.intercept)
-
-    for pos in cols
-        varname = data.expvars[pos]
-        out *= @sprintf(" %-35s", varname)
-        out *= @sprintf(" %-10f", result.bestresult_data[datanames_index[Symbol(string(varname, "_b"))]])
-        if result.ttest
-            out *= @sprintf("   %-10f", result.bestresult_data[datanames_index[Symbol(string(varname, "_bstd"))]])
-            out *= @sprintf("   %-10f", result.bestresult_data[datanames_index[Symbol(string(varname, "_t"))]])
-        end
-        out *= @sprintf("\n")
-    end
-
-    out *= @sprintf("──────────────────────────────────────────────────────────────────────────────\n")
-    out *= @sprintf(" Observations                        %-10d\n", result.bestresult_data[datanames_index[:nobs]])
-    out *= @sprintf(" Adjusted R²                         %-10f\n", result.bestresult_data[datanames_index[:r2adj]])
-    out *= @sprintf(" F-statistic                         %-10f\n", result.bestresult_data[datanames_index[:F]])
-    for criteria in result.criteria
-        if AVAILABLE_CRITERIA[criteria]["verbose_show"]
-    out *= @sprintf(" %-30s      %-10f\n", AVAILABLE_CRITERIA[criteria]["verbose_title"], result.bestresult_data[datanames_index[criteria]])
-        end
-    end
-
-    if !result.modelavg
-        out *= @sprintf("──────────────────────────────────────────────────────────────────────────────\n")
-    else 
-        out *= @sprintf("\n")
-        out *= @sprintf("\n")
-        out *= @sprintf("══════════════════════════════════════════════════════════════════════════════\n")
-        out *= @sprintf("                            Model averaging results                           \n")
-        out *= @sprintf("══════════════════════════════════════════════════════════════════════════════\n")
-        out *= @sprintf("                                                                              \n")
-        out *= @sprintf("                                     Dependent variable: %s                   \n", data.depvar)
-        out *= @sprintf("                                     ─────────────────────────────────────────\n")
-        out *= @sprintf("                                                                              \n")
-        out *= @sprintf(" Covariates                          Coef.")
-        if result.ttest
-            out *= @sprintf("        Std.         t-test")
-        end
-        out *= @sprintf("\n")
-        out *= @sprintf("──────────────────────────────────────────────────────────────────────────────\n")
-
-
-
-        for varname in data.expvars
-            out *= @sprintf(" %-35s", varname)
-            out *= @sprintf(" %-10f", result.modelavg_data[datanames_index[Symbol(string(varname, "_b"))]])
-            if result.ttest
-                out *= @sprintf("   %-10f", result.modelavg_data[datanames_index[Symbol(string(varname, "_bstd"))]])
-                out *= @sprintf("   %-10f", result.modelavg_data[datanames_index[Symbol(string(varname, "_t"))]])
-            end
-            out *= @sprintf("\n")
-        end
-        out *= @sprintf("\n")
-        out *= @sprintf("──────────────────────────────────────────────────────────────────────────────\n")
-        out *= @sprintf(" Observations                        %-10d\n", result.modelavg_data[datanames_index[:nobs]])
-        out *= @sprintf(" Adjusted R²                         %-10f\n", result.modelavg_data[datanames_index[:r2adj]])
-        out *= @sprintf(" F-statistic                         %-10f\n", result.modelavg_data[datanames_index[:F]])
-        out *= @sprintf(" Combined criteria                   %-10f\n", result.modelavg_data[datanames_index[:order]])
-        out *= @sprintf("──────────────────────────────────────────────────────────────────────────────\n")
-        
-    end
-
-    return out
 end
