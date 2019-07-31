@@ -1,9 +1,13 @@
 """
 Add values to extras
 """
-function addextras(data)
+function addextras(data, lassonumvars, betas, lambda)
     data.extras[GlobalSearchRegression.generate_extra_key(PRELIMINARYSELECTION_EXTRAKEY, data.extras)] = Dict(
-        :enabled => true
+        :preliminaryselection => :lasso,
+        :lassonumvars => lassonumvars,
+        :lassobetas => betas,
+        :lassolambda => lambda,
+        :nobs => data.nobs
     )
     return data
 end

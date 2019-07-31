@@ -14,8 +14,8 @@ function gsr(
     fe_lag::Union{Nothing, Array}=nothing,
     interaction::Union{Nothing, Array}=nothing,
     preliminaryselection::Union{Nothing, Symbol}=nothing,
-    fixedvariables::Array=AllSubsetRegression.FIXEDVARIABLES_DEFAULT,
-    outsample=AllSubsetRegression.OUTSAMPLE_DEFAULT,
+    fixedvariables::Union{Nothing, Array}=AllSubsetRegression.FIXEDVARIABLES_DEFAULT,
+    outsample::Union{Nothing, Int, Array}=AllSubsetRegression.OUTSAMPLE_DEFAULT,
     criteria::Array=AllSubsetRegression.CRITERIA_DEFAULT,
     ttest::Bool=AllSubsetRegression.TTEST_DEFAULT,
     modelavg::Bool=AllSubsetRegression.MODELAVG_DEFAULT,
@@ -25,7 +25,8 @@ function gsr(
     numfolds::Int=NUMFOLDS_DEFAULT,
     testsetshare::Union{Float32, Float64}=TESTSETSHARE_DEFAULT,
     exportcsv::Union{Nothing, String}=EXPORTCSV_DEFAULT,
-    exportsummary::Union{Nothing, String}=EXPORTSUMMARY_DEFAULT
+    exportsummary::Union{Nothing, String}=EXPORTSUMMARY_DEFAULT,
+    exportlatex::Union{Nothing, String}=EXPORTLATEX_DEFAULT
     )
 
     gsr(
@@ -55,7 +56,8 @@ function gsr(
         numfolds=numfolds,
         testsetshare=testsetshare,
         exportcsv=exportcsv,
-        exportsummary=exportsummary
+        exportsummary=exportsummary,
+        exportlatex=exportlatex
     )
 end
 
@@ -75,8 +77,8 @@ function gsr(
     fe_lag::Union{Nothing, Array}=nothing,
     interaction::Union{Nothing, Array}=nothing,
     preliminaryselection::Union{Nothing, Symbol}=nothing,
-    fixedvariables::Array=AllSubsetRegression.FIXEDVARIABLES_DEFAULT,
-    outsample=AllSubsetRegression.OUTSAMPLE_DEFAULT,
+    fixedvariables::Union{Nothing, Array}=AllSubsetRegression.FIXEDVARIABLES_DEFAULT,
+    outsample::Union{Nothing, Int, Array}=AllSubsetRegression.OUTSAMPLE_DEFAULT,
     criteria::Array=AllSubsetRegression.CRITERIA_DEFAULT,
     ttest::Bool=AllSubsetRegression.TTEST_DEFAULT,
     modelavg::Bool=AllSubsetRegression.MODELAVG_DEFAULT,
@@ -86,13 +88,14 @@ function gsr(
     numfolds::Int=NUMFOLDS_DEFAULT,
     testsetshare::Union{Float32, Float64}=TESTSETSHARE_DEFAULT,
     exportcsv::Union{Nothing, String}=EXPORTCSV_DEFAULT,
-    exportsummary::Union{Nothing, String}=EXPORTSUMMARY_DEFAULT
+    exportsummary::Union{Nothing, String}=EXPORTSUMMARY_DEFAULT,
+    exportlatex::Union{Nothing, String}=EXPORTLATEX_DEFAULT
 )
 
-    if fe_lag != nothing
-        removemissings = false
-    else
+    if fe_lag == nothing
         removemissings = true
+    else
+        removemissings = false
     end
 
     data = Preprocessing.input(
@@ -109,11 +112,11 @@ function gsr(
     )
 
     if featureextraction_enabled(fe_sqr, fe_log, fe_inv, fe_lag, interaction)
-        data = FeatureExtraction.featureextraction!(data, fe_lag=fe_lag, fe_log=fe_log, fe_inv=fe_inv, interaction=interaction, removemissings=true)
+        data = FeatureExtraction.featureextraction!(data, fe_sqr=fe_sqr, fe_lag=fe_lag, fe_log=fe_log, fe_inv=fe_inv, interaction=interaction, removemissings=true)
     end
 
     original_data = copy_data(data)
-    
+
     if preliminaryselection_enabled(preliminaryselection)
         preliminaryselection = Symbol(preliminaryselection)
         if !validate_preliminaryselection(preliminaryselection)
@@ -141,7 +144,11 @@ function gsr(
     end
 
     if exportcsv != nothing
-        GlobalSearchRegression.Output.csv(data, exportcsv)
+        GlobalSearchRegression.Output.csv(data, filename=exportcsv)
+    end
+
+    if exportlatex != nothing
+        GlobalSearchRegression.Output.latex(data, original_data, path=exportlatex)
     end
 
     println(GlobalSearchRegression.Output.summary(data, filename=exportsummary))

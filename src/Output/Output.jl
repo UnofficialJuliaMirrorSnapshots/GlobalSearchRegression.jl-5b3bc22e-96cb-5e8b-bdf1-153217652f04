@@ -1,5 +1,17 @@
 module Output
-    using DelimitedFiles, Printf, Statistics, Mustache
+    using DelimitedFiles,
+            Printf,
+            Mustache, 
+            KernelDensity,
+            StatsPlots,
+            ZipFile,
+            InfoZIP,
+            Statistics, 
+            StatsPlots,
+            DataFrames,
+            Distributions,
+            Distributed
+    using Plots, StatsPlots
     using ..GlobalSearchRegression
 
     export csv, summary, latex

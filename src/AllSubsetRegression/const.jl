@@ -1,5 +1,5 @@
 const ALLSUBSETREGRESSION_EXTRAKEY = :allsubsetregression
-const FIXEDVARIABLES_DEFAULT = []
+const FIXEDVARIABLES_DEFAULT = nothing
 const INSAMPLE_MIN = 20
 const OUTSAMPLE_DEFAULT = 20
 const CRITERIA_DEFAULT = []
@@ -9,7 +9,7 @@ const RESIDUALTEST_DEFAULT = false
 const ORDERRESULTS_DEFAULT = false
 
 const INDEX = :index
-const EQUATION_GENERAL_INFORMATION = [:nobs, :ncoef, :sse, :r2, :F, :rmse]
+const EQUATION_GENERAL_INFORMATION = [:nobs, :ncoef, :sse, :r2, :F, :rmse, :r2adj]
 const RESIDUAL_TESTS_TIME = [:jbtest, :wtest, :bgtest]
 const RESIDUAL_TESTS_CROSS = [:jbtest, :wtest]
 const ORDER = :order
