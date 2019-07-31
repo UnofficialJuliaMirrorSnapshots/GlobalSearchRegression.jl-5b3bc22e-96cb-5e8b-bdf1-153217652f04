@@ -1,10 +1,10 @@
-title: "GlobalSearchRegression.jl: Building bridges between Machine Learning and Econometrics in Fat-Data scenarios"
+title: "GlobalSearchRegression.jl: Building bridges between Machine Learning and Econometrics for Fat-Data"
 
 keywords:
   - Julia
   - Parallel computing
   - Econometrics
-  - alls-subset regression
+  - all-subset regression
   - Machine Learning
   - Fat-Data
 
