@@ -1,4 +1,4 @@
-# GlobalSearchRegression [![Build Status](https://travis-ci.org/ParallelGSReg/GlobalSearchRegression.jl.svg?branch=master)](https://travis-ci.org/ParallelGSReg/GlobalSearchRegression.jl) [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://parallelgsreg.github.io/GlobalSearchRegression.jl/)
+# GlobalSearchRegression [![Build Status](https://travis-ci.org/ParallelGSReg/GlobalSearchRegression.jl.svg?branch=master)](https://travis-ci.org/ParallelGSReg/GlobalSearchRegression.jl) [![codecov](https://codecov.io/gh/ParallelGSReg/GlobalSearchRegression.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/ParallelGSReg/GlobalSearchRegression.jl) [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://parallelgsreg.github.io/GlobalSearchRegression.jl/)
 
 ## Abstract
 GlobalSearchRegression is both the world-fastest all-subset-regression command (a widespread tool for automatic model/feature selection) and a first-step to develop a coeherent framework to [merge](http://web.stanford.edu/class/ee380/Abstracts/140129-slides-Machine-Learning-and-Econometrics.pdf) Machine Learning and Econometric algorithms. 
@@ -103,6 +103,8 @@ GlobalSearchRegression advanced properties include almost all Stata-GSREG option
 
 ## Full-syntax example
 This is a full-syntax example, assuming Julia 1.0.1 (or newer version), GlobalSearchRegression and DataFrames are already installed in a quad-core personal computer.
+To enable parallelism, the Distributed package (including its addprocs command) must be activated before GlobalSearchRegression (in three different lines, one for Distributed, one for addprocs() and the other for GlobalSearchRegreesion, see the example below).
+
 ```julia
 # The first four lines are used to simulate data with random variables
 julia> using DataFrames
@@ -131,6 +133,8 @@ julia> gsreg("y x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15", data,
     parallel=4,
     orderresults=false)
 ```
+## Limitations
+GlobalSearchRegression.jl is not able to handle databases with perfectly-collinear covariates. An error message will be retreived and users will have to select a new database with just one of these perfectly-colllinear variables. Similarly, it is not possible yet to include categorical variables as potential covariates. They should be transformed into dummmy variables before using GlobalSearchRegression.jl. Finally, string variables are not allowed.
 
 ## Credits
-The GSReg module, which perform regression analysis, was written primarily by [Demian Panigo](https://github.com/dpanigo/), [Valentín Mari](https://github.com/vmari/) and [Adán Mauri Ungaro](https://github.com/adanmauri/). The GlobalSearchRegression.jl module was inpired by GSReg for Stata, written by Pablo Gluzmann and [Demian Panigo](https://github.com/dpanigo/).
+The GSReg module, which perform regression analysis, was written primarily by [Demian Panigo](https://github.com/dpanigo/), [Valentín Mari](https://github.com/vmari/), [Adán Mauri Ungaro](https://github.com/adanmauri/) and [Nicolas Monzon](https://github.com/nicomzn) under the supervision of [Esteban Mocskos](https://github.com/emocskos). The GlobalSearchRegression.jl module was inpired by GSReg for Stata, written by Pablo Gluzmann and [Demian Panigo](https://github.com/dpanigo/).

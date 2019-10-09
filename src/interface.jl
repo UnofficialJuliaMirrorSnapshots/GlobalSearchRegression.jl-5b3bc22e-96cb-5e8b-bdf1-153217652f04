@@ -279,6 +279,16 @@ function gsreg(
     depvar = equation[1]
     expvars = equation[2:end]
 
+    expvars_data = data[ 1:end, 2:end ]
+    corrmatrix = cor(expvars_data)
+    s = size(corrmatrix, 1)
+    corrminusiden = corrmatrix - Matrix{Float64}(I, s,s)
+    maxcorr = maximum(corrminusiden)
+
+    if maxcorr > 0.999
+        error("Your explanatory variables are not linearly independent -perfect multicollinearity among covariates-")
+    end
+
     result = gsreg(
         depvar,
         expvars,
